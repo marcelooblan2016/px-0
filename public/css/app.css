@@ -11271,4 +11271,31 @@ textarea.form-control-lg {
 }
 body {
   background: #b2b3b6;
+  font-family: "Glory", sans-serif;
+}
+
+#main-menu #main-menu-center ul li {
+  margin-left: 1px;
+  margin-right: 1px;
+  min-width: 200px;
+  border-top-left-radius: 50em;
+  border-bottom-left-radius: 50em;
+  border-top-right-radius: 50em;
+  border-bottom-right-radius: 50em;
+  border: solid 1px transparent;
+  transition: background-color 0.5s ease;
+  -webkit-transition: background-color 0.5s ease;
+  -o-transition: background-color 0.5s ease;
+  -moz-transition: background-color 0.5s ease;
+  -ms-transition: background-color 0.5s ease;
+}
+#main-menu #main-menu-center ul li:hover, #main-menu #main-menu-center ul li.active {
+  background: #e2e0e0;
+}
+
+footer .footer-nav li {
+  display: inline-block;
+}
+footer .footer-nav li a {
+  color: gray;
 }

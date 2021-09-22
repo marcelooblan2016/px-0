@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', 'App\Http\Controllers\IndexController@index');
+Route::get('/convert', 'App\Http\Controllers\IndexController@showConvert');
 
 Route::get('test', function () {
     $class = new Class {
@@ -30,7 +31,12 @@ Route::get('test', function () {
              * youtube-dl -f 398+140 https://www.youtube.com/watch?v=rZ3S_TNinwc -o "/var/www/html/px-0/public/storage/test.mp4" --no-cache-dir --no-check-certificate (COMBINE ID - VIDEO + AUDIO)
              */
             $youtubeDL = app(\App\Services\YoutubeDL\Interfaces\YoutubeDLInterface::class);
-            $response = $youtubeDL->getInfo($url);
+
+            $jsonData = $youtubeDL->getInfoByJson($url);
+            $formats = $youtubeDL->getInfoWithFormats($url);
+            $jsonData['available_download_options'] = $formats;
+            
+            dd($jsonData);
 
             $ytId = 398;
             $saveInPath =  public_path("storage/test.mp4");

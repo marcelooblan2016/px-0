@@ -10,4 +10,9 @@ class IndexController extends Controller
     {
         return view('pages.index', []);
     }
+
+    public function showConvert(Request $request)
+    {
+        return view('pages.convert.index', []);
+    }
 }

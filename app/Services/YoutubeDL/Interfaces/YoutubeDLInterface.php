@@ -4,5 +4,6 @@ namespace App\Services\YoutubeDL\Interfaces;
 
 interface YoutubeDLInterface
 {
-    public function getInfo($url);
+    public function getInfoByJson($url);
+    public function getInfoWithFormats($url);
 }

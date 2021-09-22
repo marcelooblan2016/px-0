@@ -1,0 +1,26 @@
+#main-menu {
+    #main-menu-center{
+        ul {
+            li {
+                margin-left: 1px;
+                margin-right: 1px;
+                min-width: 200px;
+                border-top-left-radius: 50em;
+                border-bottom-left-radius: 50em;
+                border-top-right-radius: 50em;
+                border-bottom-right-radius: 50em;
+                border: solid 1px transparent;
+                
+                transition: background-color .5s ease;
+                -webkit-transition: background-color .5s ease;
+                -o-transition: background-color .5s ease;
+                -moz-transition: background-color .5s ease;
+                -ms-transition: background-color .5s ease;
+
+                &:hover, &.active {
+                    background: rgb(226, 224, 224);
+                }
+            }
+        }
+    }
+}

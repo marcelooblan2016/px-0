@@ -10,7 +10,26 @@ use Illuminate\Support\Facades\Log;
 
 class Index implements YoutubeDLInterface
 {
-    public function getInfo($url)
+    public function getInfoByJson($url)
+    {
+        $command_string = (
+            vsprintf(
+                "%s %s %s %s", [
+                    "youtube-dl",
+                    $url,
+                    "--dump-json",
+                    "--no-cache-dir",
+                ]
+            )
+        );
+        
+        $json_string = trim( shell_exec($command_string) );
+        $json_data = json_decode($json_string, true);
+        
+        return $json_data;
+    }
+
+    public function getInfoWithFormats($url)
     {
         $commandString = (
             vsprintf(
@@ -111,6 +130,12 @@ class Index implements YoutubeDLInterface
                     ];
                 }
 
+            })
+            ->filter( function ($row) {
+                // valid fileType for merging
+                $validFileTypes = ['mp4', 'm4a'];
+                
+                return !empty($row['file_type']) && in_array($row['file_type'], $validFileTypes);
             })
             ->toArray();
         }
