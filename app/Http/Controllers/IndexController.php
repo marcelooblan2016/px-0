@@ -11,8 +11,8 @@ class IndexController extends Controller
         return view('pages.index', []);
     }
 
-    public function showConvert(Request $request)
+    public function about(Request $request)
     {
-        return view('pages.convert.index', []);
+        return view('pages.about', []);
     }
 }

@@ -137,6 +137,7 @@ class Index implements YoutubeDLInterface
                 
                 return !empty($row['file_type']) && in_array($row['file_type'], $validFileTypes);
             })
+            ->values()
             ->toArray();
         }
 

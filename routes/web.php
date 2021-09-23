@@ -12,38 +12,13 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+use App\Http\Controllers\IndexController;
+use App\Http\Controllers\ConvertController;
 
-Route::get('/', 'App\Http\Controllers\IndexController@index');
-Route::get('/convert', 'App\Http\Controllers\IndexController@showConvert');
+Route::get('/', [IndexController::class, 'index'])->name('home');
 
-Route::get('test', function () {
-    $class = new Class {
-        public function test()
-        {
-            // $url = "https://www.youtube.com/watch?v=DaGxxmaxPPw";
-            //$url = "https://www.youtube.com/watch?v=j7kFK4JeUwM";
-            // $url = "https://music.youtube.com/watch?v=SPuN6ElyaRc&list=RDAMVMTJc2obR28zQ";
-            // $url = "https://www.youtube.com/watch?v=8PlaqfnNLFA";
-            $url = "https://www.youtube.com/watch?v=rZ3S_TNinwc";
-
-            /**
-             * Combine videoId + audioId for merging as mp4
-             * youtube-dl -f 398+140 https://www.youtube.com/watch?v=rZ3S_TNinwc -o "/var/www/html/px-0/public/storage/test.mp4" --no-cache-dir --no-check-certificate (COMBINE ID - VIDEO + AUDIO)
-             */
-            $youtubeDL = app(\App\Services\YoutubeDL\Interfaces\YoutubeDLInterface::class);
-
-            $jsonData = $youtubeDL->getInfoByJson($url);
-            $formats = $youtubeDL->getInfoWithFormats($url);
-            $jsonData['available_download_options'] = $formats;
-            
-            dd($jsonData);
-
-            $ytId = 398;
-            $saveInPath =  public_path("storage/test.mp4");
-            $youtubeDL->downloadYoutube($url, $saveInPath, null, $ytId);
-            dd($response);
-        }
-    };
-
-    $class->test();
+Route::get('/about', [IndexController::class, 'about'])->name('about');
+Route::group(['prefix' => 'convert'], function () {
+    Route::get('/', [ConvertController::class, 'index'])->name('convert.index');
+    Route::post('/', [ConvertController::class, 'convertNow'])->name('convert.now');
 });
