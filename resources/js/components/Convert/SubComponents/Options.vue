@@ -13,20 +13,17 @@
                                     <div class="card mb-1">
                                         <div class="card-body">
                                             <div class="d-grid gap-2">
-                                                <a href="#" class="btn btn-success">
-                                                    <strong>1080p</strong>
-                                                    Download (100 mb)
-                                                </a>
+                                                <template v-for="rowVideo in availableDownloadOptionsVideo">
+                                                    <a href="#" class="btn btn-success" v-on:click.prevent="convertItem(rowVideo.id)">
+                                                        <strong>{{ rowVideo.quality }}</strong>
+                                                        &bullet;
+                                                        <strong v-show="rowVideo.quality_term != null" class="ucwords">
+                                                            {{ rowVideo.quality_term }} quality
+                                                        </strong>
 
-                                                <a href="#" class="btn btn-success">
-                                                    <strong>720p</strong>
-                                                    Download (80 mb)
-                                                </a>
-
-                                                <a href="#" class="btn btn-success">
-                                                    <strong>480p</strong>
-                                                    Download (60 mb)
-                                                </a>
+                                                        Download ({{ rowVideo.size }})
+                                                    </a>
+                                                </template>
                                             </div>
                                         </div>
                                     </div>
@@ -35,12 +32,22 @@
                                     <h5>Audio &bullet; Mp3</h5>
                                     <div class="card mb-1">
                                         <div class="card-body">
-                                            <div class="d-grid gap-2">
-                                                <a href="#" class="btn btn-success">Download (30 mb)</a>
-                                            </div>
+                                            <template v-for="rowAudio in availableDownloadOptionsAudio" v-on:click.prevent="convertItem(rowAudio.id)">
+                                                <div class="d-grid gap-2">
+                                                    <a href="#" class="btn btn-success" v-on:click.prevent="convertItem(rowAudio.id)">
+                                                        <strong class="ucwords">
+                                                            Good Quality
+                                                        </strong>
+                                                        Download ({{ rowAudio.size }})
+                                                    </a>
+                                                </div>
+                                            </template>
+
                                         </div>
                                     </div>
                                 </div>
+
+                               
                             </div>
                         </div>
                     </div>
@@ -54,7 +61,7 @@
                         </div>
                         <hr/>
                         <div class="text-start" v-html="convertRequestDescription"></div>
-                        <div class="mb-2">
+                        <div class="mb-2" v-show="convertRequestDescription != null && convertRequestDescription.length > descriptionMaxLen">
                             <hr/>
                             <a type="button" class="btn btn-light btn-sm border border-1" v-on:click="seeMore">
                                 <template v-if="isSeeMore == false">
@@ -87,6 +94,8 @@ export default {
     data () {
         return {
             isSeeMore: false,
+            descriptionMaxLen: 200,
+            processing: false,
         }
     },
 
@@ -109,7 +118,10 @@ export default {
 
             let description = _.get(this.convertRequest, 'mapped_details.description');
             if (this.isSeeMore == false) {
-                description = description.substring(0, 200) + "...";
+                let maxLen = this.descriptionMaxLen;
+                if (description.length >= maxLen) {
+                    description = description.substring(0, maxLen) + "...";
+                }
             }
             
             return description;
@@ -118,13 +130,93 @@ export default {
         convertRequestThumbnail () {
 
             return _.get(this.convertRequest, 'mapped_details.thumbnail')
+        },
+
+        availableDownloadOptions () {
+            
+            return _.get(this.convertRequest, 'details.available_download_options');
+        },
+
+        availableDownloadOptionsAudio () {
+            let availableDownloadOptions = this.availableDownloadOptions;
+            if (availableDownloadOptions == null) return false;
+
+            return availableDownloadOptions.filter ( (row) => row.type == 'audio');
+        },
+
+        availableDownloadOptionsVideo () {
+            let availableDownloadOptions = this.availableDownloadOptions;
+            if (availableDownloadOptions == null) return false;
+
+            let validQualities = [
+                '480p',
+                '720p',
+                '1080p'
+            ];
+            
+         
+            availableDownloadOptions = availableDownloadOptions.filter ( (row) => row.type == 'video' && validQualities.includes(row.quality))
+                .map( function (row) {
+                    switch(row.quality) {
+                        case '480p':
+                            row['quality_term'] = 'low';
+                            break;
+                        case '720p':
+                            row['quality_term'] = 'good';
+                            break;
+                        case '1080p':
+                            row['quality_term'] = 'best';
+                            break;
+                        default:
+                            row['quality_term'] = null;
+                            break;
+                    }
+
+                    return row;
+                });
+        
+            
+            let duplicates = [];
+            let downloadOptions = [];
+            for (let index in availableDownloadOptions) {
+                let row = availableDownloadOptions[index];
+                let quality = row['quality'];
+                if (!duplicates.includes(quality)) {
+                    duplicates.push(quality);
+                    downloadOptions.push(row);
+                }
+            }
+
+            return downloadOptions
         }
     },
 
     methods: {
         seeMore () {
             this.isSeeMore = this.isSeeMore == false ? true : false;
+        },
+
+        convertItem(formatId) {
+            let convertRequestId = this.convertRequest.id;
+            this.processing = true;
+            let parameters = {};
+
+            window.axios.post(`convert/${convertRequestId}/${formatId}`, parameters)
+            .then(response => {
+                console.log(response);
+            }).catch(error => {
+                console.log(error);
+
+            }).finally(() => {
+                this.processing = false
+            })
+
         }
     }
 }
 </script>
+<style scoped>
+.ucwords {
+    text-transform: capitalize;
+}
+</style>

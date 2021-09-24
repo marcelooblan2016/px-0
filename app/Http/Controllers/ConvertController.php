@@ -7,6 +7,7 @@ use App\Models\ConvertRequest as ModelConvertRequest;
 use App\Http\Requests\ConvertRequest;
 use App\Services\YoutubeDL\Interfaces\YoutubeDLInterface;
 use App\Http\Abilities\MapDetailsAbility;
+use Illuminate\Support\Arr;
 use Exception;
 
 class ConvertController extends Controller
@@ -43,6 +44,9 @@ class ConvertController extends Controller
                             'details' => $jsonData
                         ]);
                     }
+                    else {
+                        
+                    }
                     
                     $methodName = $convertType."Map";
                     $convertRequest['mapped_details'] = method_exists($this, $methodName) ? $this->{$methodName}($convertRequest) : null;
@@ -53,6 +57,49 @@ class ConvertController extends Controller
 
             throw new Exception("Unable to process");
 
+        } catch (Exception $e) {
+
+            return response()->json([
+                "message" => "An error occured.",
+                "errors" => [
+                    "url" => [$e->getMessage()],
+                ]
+            ], 422);
+        }
+    }
+
+    public function convertItemNow(ModelConvertRequest $convertRequest, $formatId, Request $request)
+    {
+        try {
+            $availableDownloadOptions = Arr::get($convertRequest, 'details.available_download_options');
+
+            $foundDownload = collect($availableDownloadOptions)
+                ->filter( function ($download) use ($formatId) {
+
+                    return $download['id'] == $formatId;
+                })
+                ->first();
+
+            if (empty($foundDownload)) throw new Exception("formatID not found.", 1);
+            
+            $formatIds = [$formatId];
+
+            if ($foundDownload['type'] == 'video') {
+                $m4aDownload = collect($availableDownloadOptions)
+                    ->filter( function ($download) {
+                        
+                        return $download['file_type'] == 'm4a';
+                    })
+                    ->first();
+
+                $formatIds[] = $m4aDownload['id'];
+            }
+            
+            dd($formatIds);
+
+            // create convert item
+            // dispatch jobs
+                
         } catch (Exception $e) {
 
             return response()->json([
