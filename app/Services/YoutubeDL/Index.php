@@ -6,7 +6,9 @@ use Illuminate\Support\Facades\Schema;
 use App\Services\YoutubeDL\Interfaces\YoutubeDLInterface;
 use GuzzleHttp\ClientInterface;
 use Exception;
+use ChrisUllyott\FileSize;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class Index implements YoutubeDLInterface
 {
@@ -135,32 +137,68 @@ class Index implements YoutubeDLInterface
                 // valid fileType for merging
                 $validFileTypes = ['mp4', 'm4a'];
                 
-                return !empty($row['file_type']) && in_array($row['file_type'], $validFileTypes);
+                return (!empty($row['file_type']) && in_array($row['file_type'], $validFileTypes)) &&
+                Str::contains($row['size'], ['best']) === false;
             })
-            ->values()
+            ->values();
+
+            $responseRows = collect($responseRows)
+            ->map( function ($row) use ($responseRows) {
+
+                $row['size_plus'] = $this->sizePlus($row, $responseRows);
+
+                return $row;
+            })
             ->toArray();
         }
 
         return $responseRows;
     }
 
-    public function downloadYoutube($url, $saveInPath, $userAgent, $ytId)
+    private function sizePlus($row, $responseRows)
     {
+        if (empty($row['size'])) return null;
+        if (!empty($row['file_type']) && $row['file_type'] == 'mp4') {
+            
+            $mp3RowSize = collect($responseRows)
+                ->filter( function ($row) {
+                    return !empty($row['file_type']) &&
+                    !empty($row['size']) &&
+                    $row['type'] == 'audio' &&
+                    $row['file_type'] == 'm4a';
+                })
+                ->first()['size'] ?? null;
+            
+            try {
+                $size = new FileSize($row['size']);
+                $size->add($mp3RowSize);
+    
+                return $size->asAuto();
+            } catch (Exception $e) {}
+        }
+
+        return $row['size'];
+    }
+
+    public function downloadYoutube($url, $saveInPath, $formatIds)
+    {
+        /* 
+            youtube-dl -f 398+140 https://www.youtube.com/watch?v=rZ3S_TNinwc -o 
+            "/var/www/html/px-0/public/storage/test.mp4"
+            --no-cache-dir --no-check-certificate
+        */
         $commandString = (
             vsprintf(
-                "%s %s %s %s %s", [
-                    "youtube-dl",
-                    "-f $ytId",
+                "youtube-dl -f %s %s -o \"%s\" --no-cache-dir --no-check-certificate", [
+                    $formatIds,
                     $url,
-                    '-o "'.$saveInPath.'"',
-                    '--no-cache-dir --no-check-certificate',
+                    $saveInPath,
                 ]
             )
         );
         
-        dd($commandString);
         $response = trim( shell_exec($commandString) );
-
+        
         return $response;
     }
 

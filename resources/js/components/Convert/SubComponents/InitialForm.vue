@@ -4,6 +4,7 @@
             <div v-if="showTransition">
                 <validation-observer ref="form" v-slot="{ validate, invalid }">
                     <div class="row justify-content-center">
+
                             <div class="col-md-8 col-offset-2">
                                 <ul class="nav nav-tabs text-center py-2">
                                     <li class="nav-item" v-for="row in convertOptions" :key="row.value" v-show="row.disabled == false || row.disabled == null">
@@ -98,6 +99,8 @@ export default {
             window.axios.post("/convert", parameters)
             .then(response => {
                 this.$emit('update:convert-request', response.data);
+                // this.$emit('historyApiPushState', `convert/` + response.data.external_id);
+
             }).catch(error => {
                 let errors = error.response.data.errors;
                 for( let key in errors) {

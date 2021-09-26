@@ -5,25 +5,27 @@
         </div>
         <hr/>
         <template v-if="convertRequest == null">
-            <convert-request-initial-form :convertRequest.sync="convertRequest"></convert-request-initial-form>
+            <convert-request-initial-form :convertRequest.sync="convertRequest" @historyApiPushState="historyApiPushState"></convert-request-initial-form>
         </template>
         <template v-else>
             <template v-if="convertRequestItem == null">
-                <convert-request-options :convertRequest="convertRequest" :convertRequestItem.sync="convertRequestItem"></convert-request-options>
+                <convert-request-options :convertRequest="convertRequest" :convertRequestItem.sync="convertRequestItem" @historyApiPushState="historyApiPushState"></convert-request-options>
             </template>
             <template v-else>
-                <h1 class="text-danger">DOWNLOAD LINK HERE</h1>
+                <convert-request-item-results :convertRequestItem="convertRequestItem"></convert-request-item-results>
             </template>
         </template>
     </div>
 </template>
 <script>
-import ConvertRequestOptions from 'components/Convert/SubComponents/Options'
 import ConvertRequestInitialForm from 'components/Convert/SubComponents/InitialForm'
+import ConvertRequestOptions from 'components/Convert/SubComponents/Options'
+import ConvertRequestItemResults from 'components/Convert/SubComponents/Results'
 export default {
     components: {
         ConvertRequestInitialForm,
-        ConvertRequestOptions  
+        ConvertRequestOptions,
+        ConvertRequestItemResults
     },
     data () {
         return {
@@ -37,7 +39,9 @@ export default {
     computed: {},
 
     methods: {
-        
+        historyApiPushState (urlId) {
+            window.history.pushState(null, null, `/${urlId}`);
+        }
     }
 }
 </script>

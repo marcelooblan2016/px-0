@@ -21,7 +21,7 @@
                                                             {{ rowVideo.quality_term }} quality
                                                         </strong>
 
-                                                        Download ({{ rowVideo.size }})
+                                                        Download ({{ rowVideo.size_plus }})
                                                     </a>
                                                 </template>
                                             </div>
@@ -32,16 +32,16 @@
                                     <h5>Audio &bullet; Mp3</h5>
                                     <div class="card mb-1">
                                         <div class="card-body">
-                                            <template v-for="rowAudio in availableDownloadOptionsAudio" v-on:click.prevent="convertItem(rowAudio.id)">
-                                                <div class="d-grid gap-2">
+                                            <div class="d-grid gap-2">
+                                                <template v-for="rowAudio in availableDownloadOptionsAudio" v-on:click.prevent="convertItem(rowAudio.id)">
                                                     <a href="#" class="btn btn-success" v-on:click.prevent="convertItem(rowAudio.id)">
                                                         <strong class="ucwords">
                                                             Good Quality
                                                         </strong>
-                                                        Download ({{ rowAudio.size }})
+                                                        Download ({{ rowAudio.size_plus }})
                                                     </a>
-                                                </div>
-                                            </template>
+                                                </template>
+                                            </div>
 
                                         </div>
                                     </div>
@@ -203,7 +203,8 @@ export default {
 
             window.axios.post(`convert/${convertRequestId}/${formatId}`, parameters)
             .then(response => {
-                console.log(response);
+                this.$emit('update:convert-request-item', response.data);
+                // this.$emit('historyApiPushState', `convert/` + this.convertRequest.id + `/` + response.data.id);
             }).catch(error => {
                 console.log(error);
 
