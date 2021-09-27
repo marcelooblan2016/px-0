@@ -12,7 +12,28 @@ class DownloadController extends Controller
 {
     public function downloadNow($fileId)
     {
-        // download
+        try {
+            $convertRequestItem = ModelConvertRequestItem::where('file_id', $fileId)->first();
+            if (!empty($convertRequestItem)) {
+                $headers = [];
+                $sanitizedTitle = preg_replace( '/[^a-zA-Z0-9]+/', ' ', Arr::get($convertRequestItem, 'details.title') );
+                $sanitizedTitle = trim($sanitizedTitle);
+                
+                $fileName = implode('.', [
+                    $sanitizedTitle,
+                    $convertRequestItem->file_type,
+                ]);
+
+                $fileFullPath = $convertRequestItem->path;
+
+                return response()->download($fileFullPath, $fileName, $headers);
+            }
+
+            throw new Exception("No data found.", 1);
+        } catch (Exception $e) {
+            dd($e->getMessage());
+            abort(404);
+        }
     }
 
     public function checkAvailability($fileId)

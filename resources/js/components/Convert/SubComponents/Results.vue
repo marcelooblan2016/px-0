@@ -18,12 +18,17 @@
                                     </h4>
                                 </template>
                                 <template v-else-if="convertRequestItemStatus == 2 || convertRequestItemStatus == 1">
-                                    <h4>
-                                        <button class="btn btn-success" v-on:click.prevent="downloadNow">
-                                            <i class="fas fa-download"></i>
-                                            Download Now
-                                        </button>
-                                    </h4>
+                                    <form :id="formId" method="POST" :action="downloadUrl">
+                                        <input type="hidden" name="_token" :value="tokenValue" />
+                                        <h4>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-success btn-block" v-on:click.prevent="downloadNow">
+                                                    <i class="fas fa-download"></i>
+                                                    Download Now
+                                                </button>
+                                            </div>
+                                        </h4>
+                                    </form>
                                 </template>
                                 <template v-else>
                                     <h5>
@@ -57,6 +62,8 @@ export default {
             convertRequestItemStatus: 0,
             processing: false,
             downloadUrl: null,
+            tokenValue: null,
+
         };
     },
 
@@ -78,6 +85,15 @@ export default {
         cFileSize () {
             
             return _.get(this.convertRequestItem, 'details.download_details.size_plus');
+        },
+
+        formId () {
+
+            return [
+                "form",
+                this.convertRequestItem.file_id,
+                this.convertRequestItem.file_type
+            ].join("-");
         }
     },
 
@@ -114,8 +130,12 @@ export default {
         
         downloadNow () {
             if (this.downloadUrl == null) return false;
+            let token = document.head.querySelector('meta[name="csrf-token"]');
+            this.tokenValue = token.content;
 
-            alert("DOWNLOAD NOW");
+            this.$nextTick( function () {
+                $("#" + this.formId).submit();
+            });
         }
     }
 }

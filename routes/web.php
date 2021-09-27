@@ -21,6 +21,7 @@ Route::get('/', [IndexController::class, 'index'])->name('home');
 Route::get('/about', [IndexController::class, 'about'])->name('about');
 Route::group(['prefix' => 'convert'], function () {
     Route::get('/', [ConvertController::class, 'index'])->name('convert.index');
+    Route::get('/{convertRequestExternalId}/{convertRequestItem?}', [ConvertController::class, 'showConvertRequest'])->name('convert._convert_id_.show');
     Route::post('/', [ConvertController::class, 'convertNow'])->name('convert.now');
     Route::post('/{convertRequest}/{formatId}', [ConvertController::class, 'convertItemNow'])->name('convert.item.now');
 });

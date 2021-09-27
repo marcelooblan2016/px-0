@@ -21,6 +21,28 @@ class ConvertController extends Controller
     {
         return view('pages.convert.index', []);
     }
+
+    public function showConvertRequest(Request $request, $convertRequestExternalId, ModelConvertRequestItem $convertRequestItem = null)
+    {
+        try {
+            $convertRequest = ModelConvertRequest::whereExternalId($convertRequestExternalId)->first();
+            if (empty($convertRequest)) throw new Exception("ConvertRequest not found.", 1);
+            
+            $convertType = $convertRequest->type;
+            $methodName = $convertType."Map";
+            $convertRequest['mapped_details'] = method_exists($this, $methodName) ? $this->{$methodName}($convertRequest) : null;
+            
+            if (!empty($convertRequestItem)) {
+                $convertRequestItem = $convertRequestItem->load('convertRequest');
+                if ($convertRequestItem->convertRequest->id != $convertRequest->id) throw new Exception("ConvertRequest and convertRequestItem mismatched.", 1);
+            }
+
+            return view('pages.convert.index', compact('convertRequest', 'convertRequestItem'));
+
+        } catch (Exception $e) {
+            abort(404);
+        }
+    }
     
     public function convertNow(ConvertRequest $request)
     {

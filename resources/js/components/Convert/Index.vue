@@ -1,7 +1,22 @@
 <template>
     <div>
-        <div class="text-end">
-            <p class="text-danger">Breadcrumbs here...</p>
+        <div class="row">
+            <div class="col-md-6"></div>
+            <div class="col-md-6">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb d-flex justify-content-end">
+                        <li class="breadcrumb-item" v-for="(crumb, index) in breadCrumbs" :key="index">
+                            <template v-if="crumb.active == true">
+                                <span v-html="crumb.text"></span>
+                            </template>
+                            <template v-else>
+                                <a class="text-dark" :href="crumb.value" v-html="crumb.text"></a>
+                            </template>
+                            
+                        </li>
+                    </ol>
+                </nav>
+            </div>
         </div>
         <hr/>
         <template v-if="convertRequest == null">
@@ -27,6 +42,18 @@ export default {
         ConvertRequestOptions,
         ConvertRequestItemResults
     },
+
+    props: {
+        convertRequestRaw: {
+            required: false,
+            default: null,
+        },
+        convertRequestItemRaw: {
+            required: false,
+            default: null,
+        }
+    },
+    
     data () {
         return {
             convertRequest: null,
@@ -34,9 +61,39 @@ export default {
         }
     },
 
-    mounted () {},
+    mounted () {
+        if (this.convertRequestRaw != null) {
+            this.convertRequest = this.convertRequestRaw;
+        }
 
-    computed: {},
+        if (this.convertRequestItemRaw != null) {
+            this.convertRequestItem = this.convertRequestItemRaw;
+        }
+    },
+
+    computed: {
+        breadCrumbs () {
+            let options = [
+                {'text': 'Youtube', 'value': '/convert', 'active': true}
+            ];
+            
+            if (this.convertRequestItem != null) {
+                options = [
+                    {'text': 'Youtube', 'value': '/convert', 'active': false},
+                    {'text': 'Download Options', 'value': `/convert/${this.convertRequest.external_id}`, 'active': false},
+                    {'text': `${this.convertRequestItem.file_type} &bullet; ${this.convertRequestItem.quality}`, 'value': `/convert/${this.convertRequest.external_id}/${this.convertRequestItem.id}`, 'active': true}
+                ];
+            }
+            else if (this.convertRequest != null) {
+                options = [
+                    {'text': 'Youtube', 'value': '/convert', 'active': false},
+                    {'text': 'Download Options', 'value': `/convert/${this.convertRequest.external_id}`, 'active': true}
+                ];
+            }
+
+            return options;
+        }
+    },
 
     methods: {
         historyApiPushState (urlId) {

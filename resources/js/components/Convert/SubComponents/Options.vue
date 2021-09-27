@@ -201,10 +201,10 @@ export default {
             this.processing = true;
             let parameters = {};
 
-            window.axios.post(`convert/${convertRequestId}/${formatId}`, parameters)
+            window.axios.post(`/convert/${convertRequestId}/${formatId}`, parameters)
             .then(response => {
                 this.$emit('update:convert-request-item', response.data);
-                // this.$emit('historyApiPushState', `convert/` + this.convertRequest.id + `/` + response.data.id);
+                this.$emit('historyApiPushState', `convert/` + this.convertRequest.external_id + `/` + response.data.id);
             }).catch(error => {
                 console.log(error);
 

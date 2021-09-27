@@ -5233,6 +5233,21 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -5242,14 +5257,68 @@ __webpack_require__.r(__webpack_exports__);
     ConvertRequestOptions: components_Convert_SubComponents_Options__WEBPACK_IMPORTED_MODULE_1__["default"],
     ConvertRequestItemResults: components_Convert_SubComponents_Results__WEBPACK_IMPORTED_MODULE_2__["default"]
   },
+  props: {
+    convertRequestRaw: {
+      required: false,
+      "default": null
+    },
+    convertRequestItemRaw: {
+      required: false,
+      "default": null
+    }
+  },
   data: function data() {
     return {
       convertRequest: null,
       convertRequestItem: null
     };
   },
-  mounted: function mounted() {},
-  computed: {},
+  mounted: function mounted() {
+    if (this.convertRequestRaw != null) {
+      this.convertRequest = this.convertRequestRaw;
+    }
+
+    if (this.convertRequestItemRaw != null) {
+      this.convertRequestItem = this.convertRequestItemRaw;
+    }
+  },
+  computed: {
+    breadCrumbs: function breadCrumbs() {
+      var options = [{
+        'text': 'Youtube',
+        'value': '/convert',
+        'active': true
+      }];
+
+      if (this.convertRequestItem != null) {
+        options = [{
+          'text': 'Youtube',
+          'value': '/convert',
+          'active': false
+        }, {
+          'text': 'Download Options',
+          'value': "/convert/".concat(this.convertRequest.external_id),
+          'active': false
+        }, {
+          'text': "".concat(this.convertRequestItem.file_type, " &bullet; ").concat(this.convertRequestItem.quality),
+          'value': "/convert/".concat(this.convertRequest.external_id, "/").concat(this.convertRequestItem.id),
+          'active': true
+        }];
+      } else if (this.convertRequest != null) {
+        options = [{
+          'text': 'Youtube',
+          'value': '/convert',
+          'active': false
+        }, {
+          'text': 'Download Options',
+          'value': "/convert/".concat(this.convertRequest.external_id),
+          'active': true
+        }];
+      }
+
+      return options;
+    }
+  },
   methods: {
     historyApiPushState: function historyApiPushState(urlId) {
       window.history.pushState(null, null, "/".concat(urlId));
@@ -5374,8 +5443,9 @@ __webpack_require__.r(__webpack_exports__);
         convert_type: this.convertType
       };
       window.axios.post("/convert", parameters).then(function (response) {
-        _this2.$emit('update:convert-request', response.data); // this.$emit('historyApiPushState', `convert/` + response.data.external_id);
+        _this2.$emit('update:convert-request', response.data);
 
+        _this2.$emit('historyApiPushState', "convert/" + response.data.external_id);
       })["catch"](function (error) {
         var errors = error.response.data.errors;
 
@@ -5590,9 +5660,10 @@ __webpack_require__.r(__webpack_exports__);
       var convertRequestId = this.convertRequest.id;
       this.processing = true;
       var parameters = {};
-      window.axios.post("convert/".concat(convertRequestId, "/").concat(formatId), parameters).then(function (response) {
-        _this.$emit('update:convert-request-item', response.data); // this.$emit('historyApiPushState', `convert/` + this.convertRequest.id + `/` + response.data.id);
+      window.axios.post("/convert/".concat(convertRequestId, "/").concat(formatId), parameters).then(function (response) {
+        _this.$emit('update:convert-request-item', response.data);
 
+        _this.$emit('historyApiPushState', "convert/" + _this.convertRequest.external_id + "/" + response.data.id);
       })["catch"](function (error) {
         console.log(error);
       })["finally"](function () {
@@ -5659,6 +5730,11 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   mixins: [mixins_transitionEffect__WEBPACK_IMPORTED_MODULE_0__["default"]],
@@ -5671,7 +5747,8 @@ __webpack_require__.r(__webpack_exports__);
     return {
       convertRequestItemStatus: 0,
       processing: false,
-      downloadUrl: null
+      downloadUrl: null,
+      tokenValue: null
     };
   },
   mounted: function mounted() {
@@ -5686,6 +5763,9 @@ __webpack_require__.r(__webpack_exports__);
     },
     cFileSize: function cFileSize() {
       return _.get(this.convertRequestItem, 'details.download_details.size_plus');
+    },
+    formId: function formId() {
+      return ["form", this.convertRequestItem.file_id, this.convertRequestItem.file_type].join("-");
     }
   },
   methods: {
@@ -5719,7 +5799,11 @@ __webpack_require__.r(__webpack_exports__);
     },
     downloadNow: function downloadNow() {
       if (this.downloadUrl == null) return false;
-      alert("DOWNLOAD NOW");
+      var token = document.head.querySelector('meta[name="csrf-token"]');
+      this.tokenValue = token.content;
+      this.$nextTick(function () {
+        $("#" + this.formId).submit();
+      });
     }
   }
 });
@@ -12837,7 +12921,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n/* Enter and leave animations can use different */\n/* durations and timing functions.              */\n.slide-fade-enter-active {\n    transition: all .3s ease;\n}\n.slide-fade-leave-active {\n    transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);\n}\n.slide-fade-enter, .slide-fade-leave-to\n/* .slide-fade-leave-active below version 2.1.8 */ {\n    transform: translateX(10px);\n    opacity: 0;\n}\n\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n/* Enter and leave animations can use different */\n/* durations and timing functions.              */\n.slide-fade-enter-active {\n    transition: all .3s ease;\n}\n.slide-fade-leave-active {\n    transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);\n}\n.slide-fade-enter, .slide-fade-leave-to\n/* .slide-fade-leave-active below version 2.1.8 */ {\n    transform: translateX(10px);\n    opacity: 0;\n}\n\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -47399,7 +47483,41 @@ var render = function() {
   return _c(
     "div",
     [
-      _vm._m(0),
+      _c("div", { staticClass: "row" }, [
+        _c("div", { staticClass: "col-md-6" }),
+        _vm._v(" "),
+        _c("div", { staticClass: "col-md-6" }, [
+          _c("nav", { attrs: { "aria-label": "breadcrumb" } }, [
+            _c(
+              "ol",
+              { staticClass: "breadcrumb d-flex justify-content-end" },
+              _vm._l(_vm.breadCrumbs, function(crumb, index) {
+                return _c(
+                  "li",
+                  { key: index, staticClass: "breadcrumb-item" },
+                  [
+                    crumb.active == true
+                      ? [
+                          _c("span", {
+                            domProps: { innerHTML: _vm._s(crumb.text) }
+                          })
+                        ]
+                      : [
+                          _c("a", {
+                            staticClass: "text-dark",
+                            attrs: { href: crumb.value },
+                            domProps: { innerHTML: _vm._s(crumb.text) }
+                          })
+                        ]
+                  ],
+                  2
+                )
+              }),
+              0
+            )
+          ])
+        ])
+      ]),
       _vm._v(" "),
       _c("hr"),
       _vm._v(" "),
@@ -47447,16 +47565,7 @@ var render = function() {
     2
   )
 }
-var staticRenderFns = [
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "text-end" }, [
-      _c("p", { staticClass: "text-danger" }, [_vm._v("Breadcrumbs here...")])
-    ])
-  }
-]
+var staticRenderFns = []
 render._withStripped = true
 
 
@@ -48047,29 +48156,51 @@ var render = function() {
                           : _vm.convertRequestItemStatus == 2 ||
                             _vm.convertRequestItemStatus == 1
                           ? [
-                              _c("h4", [
-                                _c(
-                                  "button",
-                                  {
-                                    staticClass: "btn btn-success",
-                                    on: {
-                                      click: function($event) {
-                                        $event.preventDefault()
-                                        return _vm.downloadNow.apply(
-                                          null,
-                                          arguments
-                                        )
-                                      }
-                                    }
-                                  },
-                                  [
-                                    _c("i", { staticClass: "fas fa-download" }),
-                                    _vm._v(
-                                      "\n                                        Download Now\n                                    "
-                                    )
-                                  ]
-                                )
-                              ])
+                              _c(
+                                "form",
+                                {
+                                  attrs: {
+                                    id: _vm.formId,
+                                    method: "POST",
+                                    action: _vm.downloadUrl
+                                  }
+                                },
+                                [
+                                  _c("input", {
+                                    attrs: { type: "hidden", name: "_token" },
+                                    domProps: { value: _vm.tokenValue }
+                                  }),
+                                  _vm._v(" "),
+                                  _c("h4", [
+                                    _c("div", { staticClass: "d-grid gap-2" }, [
+                                      _c(
+                                        "button",
+                                        {
+                                          staticClass:
+                                            "btn btn-success btn-block",
+                                          on: {
+                                            click: function($event) {
+                                              $event.preventDefault()
+                                              return _vm.downloadNow.apply(
+                                                null,
+                                                arguments
+                                              )
+                                            }
+                                          }
+                                        },
+                                        [
+                                          _c("i", {
+                                            staticClass: "fas fa-download"
+                                          }),
+                                          _vm._v(
+                                            "\n                                                Download Now\n                                            "
+                                          )
+                                        ]
+                                      )
+                                    ])
+                                  ])
+                                ]
+                              )
                             ]
                           : [
                               _c("h5", [

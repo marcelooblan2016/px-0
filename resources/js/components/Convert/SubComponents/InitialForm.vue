@@ -99,7 +99,7 @@ export default {
             window.axios.post("/convert", parameters)
             .then(response => {
                 this.$emit('update:convert-request', response.data);
-                // this.$emit('historyApiPushState', `convert/` + response.data.external_id);
+                this.$emit('historyApiPushState', `convert/` + response.data.external_id);
 
             }).catch(error => {
                 let errors = error.response.data.errors;
