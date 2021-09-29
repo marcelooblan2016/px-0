@@ -9,6 +9,7 @@ use App\Jobs\YoutubeDL;
 use App\Http\Requests\ConvertRequest;
 use App\Services\YoutubeDL\Interfaces\YoutubeDLInterface;
 use App\Http\Abilities\MapDetailsAbility;
+use App\Http\Abilities\SanitizeAbility;
 use Illuminate\Support\Arr;
 use ChrisUllyott\FileSize;
 use Exception;
@@ -16,6 +17,7 @@ use Exception;
 class ConvertController extends Controller
 {
     use MapDetailsAbility;
+    use SanitizeAbility;
 
     public function index(Request $request)
     {
@@ -51,7 +53,10 @@ class ConvertController extends Controller
         try {
             switch($convertType) {
                 case ModelConvertRequest::TYPE_YOUTUBE:
-                    $url = $request->get('url');
+                    $url = $this->youtubeSanitizeUrl($request->get('url'));
+                    
+                    if (empty($url)) throw new Exception("url not found: ". $request->get('url'), 1);
+                    
                     // check if url already requested -- check if not older than 30 days
                     $convertRequest = ModelConvertRequest::where('url', $url)->first();
 

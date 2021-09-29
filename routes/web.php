@@ -33,11 +33,18 @@ Route::group(['prefix' => 'download'], function () {
 
 Route::get('test', function () {
     $class = new Class {
+        use \App\Http\Abilities\SanitizeAbility;
         public function test() {
-            $youtubeDL = app(\App\Services\YoutubeDL\Interfaces\YoutubeDLInterface::class);
             $url = "https://www.youtube.com/watch?v=9ySVRFV3aKg";
-            $formats = $youtubeDL->getInfoWithFormats($url);
-            dd($formats);
+            $url = "https://music.youtube.com/watch?v=XBVWALD96zE&list=PLMm2CwsN0fuCMGHOl0MUzEAqUoZlyho3c";
+            // $url = "https://www.youtube.com/watch?v=kQtFHZHAedo&list=PLMm2CwsN0fuDTUibsqywmg-3ZWL3y4HXM&index=1";
+            $url = "https://m.youtube.com/watch?v=icS2FeiYXO4";
+            $url = $this->youtubeSanitizeUrl($url);
+            dd($url);
+            // $youtubeDL = app(\App\Services\YoutubeDL\Interfaces\YoutubeDLInterface::class);
+            // $url = "https://www.youtube.com/watch?v=9ySVRFV3aKg";
+            // $formats = $youtubeDL->getInfoWithFormats($url);
+            // dd($formats);
             // $size = new \ChrisUllyott\FileSize("12.53MiB");
             // $size->add("2.07GiB");
             // // dd($size->as("mb"));
@@ -48,9 +55,6 @@ Route::get('test', function () {
             //     \File::makeDirectory($pathDir, $mode = 0777, true, true);
             // }
             
-
-
-
             // $this->convertRequestItem = \App\Models\ConvertRequestItem::whereId(10)->first();
 
             // $this->convertRequestItem->load('convertRequest');
