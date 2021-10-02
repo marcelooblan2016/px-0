@@ -3,18 +3,20 @@
 namespace App\Services\YoutubeDL;
 
 use Illuminate\Support\Facades\Schema;
+use App\Models\ConvertRequest as ModelConvertRequest;
 use App\Services\YoutubeDL\Interfaces\YoutubeDLInterface;
 use GuzzleHttp\ClientInterface;
 use Exception;
 use ChrisUllyott\FileSize;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class Index implements YoutubeDLInterface
 {
-    public function getInfoByJson($url)
+    public function getInfoByJson($url, $convertType = ModelConvertRequest::TYPE_YOUTUBE)
     {
-        $command_string = (
+        $commandString = (
             vsprintf(
                 "%s %s %s %s", [
                     "youtube-dl",
@@ -25,134 +27,78 @@ class Index implements YoutubeDLInterface
             )
         );
         
-        $json_string = trim( shell_exec($command_string) );
-        $json_data = json_decode($json_string, true);
+        $jsonString = trim( shell_exec($commandString) );
         
-        return $json_data;
+        $jsonData = json_decode($jsonString, true);
+
+        $jsonData['available_download_options'] = $this->getAvailableOptionsFromFormats($jsonData);
+
+        return $jsonData;
     }
 
-    public function getInfoWithFormats($url)
+    private function getAvailableOptionsFromFormats($jsonData)
     {
-        $commandString = (
-            vsprintf(
-                "%s %s %s %s", [
-                    "youtube-dl",
-                    "-F",
-                    $url,
-                    // "--dump-json",
-                    "--no-cache-dir",
-                ]
-            )
-        );
-
-        $response = trim( shell_exec($commandString) );
-        
-        $responseData = explode("\n", $response);
-        
-        $responseRows = [];
-        collect($responseData)->each( function ($rowStr) use (&$responseRows) {
-            $responseRows[] = preg_split("/\s+/", $rowStr);
-        });
-        
-        if (count($responseRows) >= 1) {
-            $responseRows = collect($responseRows)->filter( function ($row) {
+        $formats = collect(Arr::get($jsonData, 'formats'))
+        ->map( function ($data) {
                 
-                return !empty($row[0]) && is_numeric($row[0]);
-            })
-            ->map( function ($row) {
-                if (count($row) == 11) {
-                    if ($row[2] == 'audio') {
+            switch($data['ext']) {
+                case 'm4a':
+                    $type = 'audio';
+                    break;
+                case 'mp4':
+                case 'webm':
+                default:
+                    $type = 'video';
+                    break;
+            }
 
-                        return [
-                            'id' => $row[0],
-                            'resolution' => null,
-                            'type' => 'audio',
-                            'quality' => $row[9],
-                            'fps' => null,
-                            'file_type' => $row[1],
-                            'size' => $row[10],
-                            'raw_details' => $row,
-                            'raw_string' => implode(' ', $row),
-                        ];
-                    }
-                    else {
-                        return [
-                            'id' => $row[0],
-                            'resolution' => $row[2],
-                            'type' => 'video',
-                            'quality' => $row[3],
-                            'fps' => $row[4],
-                            'file_type' => $row[1],
-                            'size' => $row[10],
-                            'raw_details' => $row,
-                            'raw_string' => implode(' ', $row),
-                        ];
-                    }
+            $resolution = null;
+            $formatNote = Arr::get($data, 'format_note');
+            $fileType = Arr::get($data, 'ext');
+            $fps = Arr::get($data, 'fps');
+            $fileSize = Arr::get($data, 'filesize');
 
-                }
-                else if (count($row) == 12) {
-                    if ($row[2] == 'audio') {
-                        return [
-                            'id' => $row[0],
-                            'resolution' => null,
-                            'type' => 'audio',
-                            'quality' => $row[10],
-                            'fps' => null,
-                            'file_type' => $row[1],
-                            'size' => $row[11],
-                            'raw_details' => $row,
-                            'raw_string' => implode(' ', $row),
-                        ];
-                    }
-                    else {
-                        return [
-                            'id' => $row[0],
-                            'resolution' => $row[2],
-                            'type' => 'video',
-                            'quality' => $row[3],
-                            'fps' => $row[9],
-                            'file_type' => $row[1],
-                            'size' => $row[11],
-                            'raw_details' => $row,
-                            'raw_string' => implode(' ', $row),
-                        ];
-                    }
+            if (!empty($data['width']) && !empty($data['height'])) {
+                $resolution = vsprintf("%sx%s", [
+                    $data['width'],
+                    $data['height']
+                ]);
 
-                }
-                else {
+                $formatNote = vsprintf("%sp", [
+                    $data['height']
+                ]);
+            }
 
-                    return [
-                        'id' => $row[0],
-                        'resolution' => null,
-                        'type' => $row[2],
-                        'quality' => $row[3],
-                        'fps' => $row[9],
-                        'raw_details' => $row,
-                        'raw_string' => implode(' ', $row),
-                    ];
-                }
-
-            })
-            ->filter( function ($row) {
-                // valid fileType for merging
-                $validFileTypes = ['mp4', 'm4a'];
+            return [
+                'id' => Arr::get($data, 'format_id'),
+                'resolution' => $resolution,
+                'type' => $type,
+                'quality' => $formatNote,
+                'fps' => $fps,
+                'file_type' => $fileType,
+                'size' => $fileSize,
+                'raw_details' => $data,
+            ];
+        })
+        ->filter( function ($row) {
+             // valid fileType for merging
+            $validFileTypes = ['mp4', 'm4a'];
                 
-                return (!empty($row['file_type']) && in_array($row['file_type'], $validFileTypes)) &&
-                Str::contains($row['size'], ['best']) === false;
-            })
-            ->values();
+            return (!empty($row['file_type']) && in_array($row['file_type'], $validFileTypes)) &&
+            Str::contains($row['size'], ['best']) === false;
+        })
+        ->values();
 
-            $responseRows = collect($responseRows)
-            ->map( function ($row) use ($responseRows) {
+        $formats = collect($formats)
+        ->map( function ($row) use ($formats) {
 
-                $row['size_plus'] = $this->sizePlus($row, $responseRows);
+            $row['size_plus'] = $this->sizePlus($row, $formats);
 
-                return $row;
-            })
-            ->toArray();
-        }
+            return $row;
+        })
+        ->toArray();
 
-        return $responseRows;
+        return $formats;
     }
 
     private function sizePlus($row, $responseRows)
@@ -176,6 +122,13 @@ class Index implements YoutubeDLInterface
                 return $size->asAuto();
             } catch (Exception $e) {}
         }
+        else {
+            try {
+                $size = new FileSize($row['size']);
+    
+                return $size->asAuto();
+            } catch (Exception $e) {}
+        }
 
         return $row['size'];
     }
@@ -187,6 +140,7 @@ class Index implements YoutubeDLInterface
             "/var/www/html/px-0/public/storage/test.mp4"
             --no-cache-dir --no-check-certificate
         */
+
         $commandString = (
             vsprintf(
                 "youtube-dl -f %s %s -o \"%s\" --no-cache-dir --no-check-certificate", [

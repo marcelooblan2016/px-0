@@ -11,6 +11,8 @@ trait FormatAbility
      */
     public function getFormattedDuration ($duration)
     {
+        if (empty($duration)) return null;
+        
         $format_type = "minutes";
         $hours = 0;
         $minutes = 0;

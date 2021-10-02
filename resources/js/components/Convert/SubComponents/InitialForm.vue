@@ -8,14 +8,30 @@
                             <div class="col-md-8 col-offset-2">
                                 <ul class="nav nav-tabs text-center py-2">
                                     <li class="nav-item" v-for="row in convertOptions" :key="row.value" v-show="row.disabled == false || row.disabled == null">
-                                        <a class="nav-link" :class="{'active': convertType == row.value}" aria-current="page" href="#">{{ row.text }}</a>
+                                        <a class="nav-link text-dark" :class="{'active': convertType == row.value}" aria-current="page" href="#" v-on:click.prevent="setConvertType(row.value)">{{ row.text }}</a>
                                     </li>
                                 </ul>
-                                <div class="form-group">
-                                    <validation-provider :rules="validationRules" v-slot="{ errors, classes }">
-                                        <input id="input-url" class="form-control" :class="classes" ref="url" placeholder="https://www.youtube.com/watch?v=rZ3S_TNinwc" v-model="url" v-on:keyup.enter="validateRequest(validate)"/>
-                                        <small class="text-danger">{{ errors.length >= 1 ? errors[0] : urlError }}</small>
-                                    </validation-provider>
+
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <template v-if="convertType == 'youtube'">
+                                                <validation-provider :rules="validationRules" v-slot="{ errors, classes }">
+                                                    <input id="input-url" class="form-control" :class="classes" ref="url" placeholder="https://www.youtube.com/watch?v=rZ3S_TNinwc" v-model="url" v-on:keyup.enter="validateRequest(validate)" autocomplete="off" />
+                                                    <small class="text-danger">{{ errors.length >= 1 ? errors[0] : urlError }}</small>
+                                                </validation-provider>
+                                            </template>
+                                            <template v-else-if="convertType == 'facebook'">
+                                                 <validation-provider :rules="validationRules" v-slot="{ errors, classes }">
+                                                    <input id="input-url" class="form-control" :class="classes" ref="url" placeholder="https://www.facebook.com/watch/?v=815660161974823" v-model="url" v-on:keyup.enter="validateRequest(validate)" autocomplete="off" />
+                                                    <small class="text-danger">{{ errors.length >= 1 ? errors[0] : urlError }}</small>
+                                                </validation-provider>
+                                            </template>
+                                        </div>
+                                    </div>
+                                    <!-- <div class="col-md-12">
+                                        <a href="#">Advanced Options</a>
+                                    </div> -->
                                 </div>
                             </div>
                             <div class="col-md-8 col-offset-2 p-2">
@@ -40,8 +56,12 @@
 </template>
 <script>
 import transitionEffect from 'mixins/transitionEffect';
+import vSelect from 'vue-select'
 
 export default {
+    components: {
+        vSelect,
+    },
     mixins: [transitionEffect],
     props: {
         convertRequest: {
@@ -54,11 +74,16 @@ export default {
             urlError: null,
             convertOptions: [
                 {"text": "Youtube", "value": "youtube"},
-                {"text": "Facebook", "value": "facebook", "disabled": true},
+                {"text": "Facebook", "value": "facebook"},
                 {"text": "Instagram", "value": "instagram", "disabled": true},
             ],
             convertType: 'youtube',
             processing: false,
+            typeOptions: [
+                'foo',
+                'bar',
+                'baz'
+            ]
         }
     },
 
@@ -73,12 +98,20 @@ export default {
             if (this.convertType == 'youtube') {
                 return 'required|url|youtube';
             }
+            else if (this.convertType == 'facebook') {
+                return 'required|url|facebook';
+            }
 
             return 'required';
         }
     },
 
     methods: {
+        setConvertType (type) {
+            this.convertType = type;
+            this.$emit('convertTypeSet', this.convertType);
+        },
+
         validateRequest (validate) {
             validate().then(result => {
                 if (! result) return;

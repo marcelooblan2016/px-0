@@ -30,7 +30,12 @@ class ConvertRequest extends FormRequest
             case 'POST':
                 $urlRules = "required|url";
                 if ($this->convert_type == ModelConvertRequest::TYPE_YOUTUBE) {
-                    $urlRules = "required|url|regex:/youtube.com/";
+                    $regex = "(youtu\.be|youtube\.com)";
+                    $urlRules = ["required", "url", "regex:$regex"];
+                }
+                elseif ($this->convert_type == ModelConvertRequest::TYPE_FACEBOOK) {
+                    $regex = "(facebook\.com|fb\.watch)";
+                    $urlRules = ["required", "url", "regex:$regex"];
                 }
 
                 $validationRules = [

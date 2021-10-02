@@ -50,6 +50,10 @@ class YoutubeDL implements ShouldQueue
 
             $response = $youtubeDLService->downloadYoutube($url, $this->saveInPath, $this->formatIds);
 
+            if (!\File::exists($this->saveInPath)) {
+                throw new Exception("File not found.", 1);
+            }
+
             $this->convertRequestItem->update([
                 'status' => ConvertRequestItem::STATUS_CONVERTED,
                 'details' => $details,

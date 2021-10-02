@@ -61,11 +61,9 @@ class ConvertController extends Controller
                     $convertRequest = ModelConvertRequest::where('url', $url)->first();
 
                     if (empty($convertRequest)) {
-                        $jsonData = $youtubeDL->getInfoByJson($url);
+                        $jsonData = $youtubeDL->getInfoByJson($url, $convertType);
 
                         if (empty($jsonData)) throw new Exception("Url not found.");
-                        $formats = $youtubeDL->getInfoWithFormats($url);
-                        $jsonData['available_download_options'] = $formats;
 
                         $convertRequest = ModelConvertRequest::create([
                             'url' => $url,
@@ -74,8 +72,30 @@ class ConvertController extends Controller
                             'details' => $jsonData
                         ]);
                     }
-                    else {
+                    
+                    $methodName = $convertType."Map";
+                    $convertRequest['mapped_details'] = method_exists($this, $methodName) ? $this->{$methodName}($convertRequest) : null;
+
+                    return response()->json($convertRequest, 200);
+                break;
+                case ModelConvertRequest::TYPE_FACEBOOK:
+                    $url = ($request->get('url'));
+                    
+                    if (empty($url)) throw new Exception("url not found: ". $request->get('url'), 1);
+                    // check if url already requested -- check if not older than 30 days
+                    $convertRequest = ModelConvertRequest::where('url', $url)->first();
+
+                    if (empty($convertRequest)) {
+                        $jsonData = $youtubeDL->getInfoByJson($url, $convertType);
+
+                        if (empty($jsonData)) throw new Exception("Url not found.");
                         
+                        $convertRequest = ModelConvertRequest::create([
+                            'url' => $url,
+                            'type' => $convertType,
+                            'method' => ModelConvertRequest::METHOD_CONVERSION,
+                            'details' => $jsonData
+                        ]);
                     }
                     
                     $methodName = $convertType."Map";
@@ -124,9 +144,7 @@ class ConvertController extends Controller
 
                 $formatIds[] = $m4aDownload['id'];
             }
-            
             $formatIdString = implode('+', $formatIds);
-            
             $convertRequestItem = ModelConvertRequestItem::where('convert_request_id', $convertRequest->id)
                 ->where('format_id', $formatIdString)
                 ->first();

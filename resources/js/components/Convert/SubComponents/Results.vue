@@ -4,10 +4,19 @@
             <div v-if="showTransition">
                 <div class="row justify-content-center">
                     <div class="col-md-8">
-                        <h1>
+                        <template v-if="cThumbnail != null">
+                            <img :src="cThumbnail" class="img-fluid rounded img-thumbnail" width="300" height="auto" />
+                            <hr/>
+                        </template>
+                        <h4>
                             {{ cTitle }}
                             <div>
-                                {{ cDuration }} &bullet; {{ cFileSize }}
+                                <template v-if="cDuration != null">
+                                    {{ cDuration }}
+                                </template>
+                                <template v-if="cFileSize != null">
+                                    &bullet; {{ cFileSize }}
+                                </template>
                             </div>
                             <br/>
                             <div class="text-center">
@@ -34,12 +43,22 @@
                                     <h5>
                                         <div class="alert alert-light text-danger" role="alert">
                                             <i class="fas fa-exclamation-triangle"></i>
-                                            An error occurred, please try again or come back later.
+                                            An error occurred, please <a :href="tryAgain" class="text-dark">try again</a> or come back later.
                                         </div>
                                     </h5>
                                 </template>
                             </div>
-                        </h1>
+                        </h4>
+                    </div>
+                    <div class="col-md-8">
+                        <figure class="text-center">
+                        <blockquote class="blockquote">
+                            <p>Help us by sharing our website or liking our page.</p>
+                        </blockquote>
+                        <figcaption class="blockquote-footer">
+                            NeoX
+                        </figcaption>
+                        </figure>
                     </div>
                 </div>
             </div>
@@ -52,6 +71,9 @@ export default {
     mixins: [transitionEffect],
     props: {
         convertRequestItem: {
+            type: [Object, Array]
+        },
+        convertRequest: {
             type: [Object, Array]
         }
     },
@@ -72,6 +94,10 @@ export default {
     },
 
     computed: {
+        cThumbnail () {
+            return _.get(this.convertRequest, 'mapped_details.thumbnail')
+        },
+
         cTitle () {
 
             return _.get(this.convertRequestItem, 'details.title');
@@ -94,6 +120,11 @@ export default {
                 this.convertRequestItem.file_id,
                 this.convertRequestItem.file_type
             ].join("-");
+        },
+
+        tryAgain () {
+
+            return `/convert/` + this.convertRequest.external_id;
         }
     },
 
@@ -116,7 +147,10 @@ export default {
                 }
                 else if (this.convertRequestItemStatus == 2 || this.convertRequestItemStatus == 1) {
                     this.downloadUrl = convertRequestItem.url;
-                    this.$nextTick( () => ( this.downloadNow () ));
+                    if (this.convertRequestItemStatus == 2) {
+                        //this.$nextTick( () => ( this.downloadNow () ));
+                    }
+
                 }
                 else {}
 

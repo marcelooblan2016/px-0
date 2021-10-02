@@ -35,16 +35,23 @@ Route::get('test', function () {
     $class = new Class {
         use \App\Http\Abilities\SanitizeAbility;
         public function test() {
-            $url = "https://www.youtube.com/watch?v=9ySVRFV3aKg";
-            $url = "https://music.youtube.com/watch?v=XBVWALD96zE&list=PLMm2CwsN0fuCMGHOl0MUzEAqUoZlyho3c";
-            // $url = "https://www.youtube.com/watch?v=kQtFHZHAedo&list=PLMm2CwsN0fuDTUibsqywmg-3ZWL3y4HXM&index=1";
-            $url = "https://m.youtube.com/watch?v=icS2FeiYXO4";
-            $url = $this->youtubeSanitizeUrl($url);
-            dd($url);
-            // $youtubeDL = app(\App\Services\YoutubeDL\Interfaces\YoutubeDLInterface::class);
             // $url = "https://www.youtube.com/watch?v=9ySVRFV3aKg";
+            // $url = "https://music.youtube.com/watch?v=XBVWALD96zE&list=PLMm2CwsN0fuCMGHOl0MUzEAqUoZlyho3c";
+            // // $url = "https://www.youtube.com/watch?v=kQtFHZHAedo&list=PLMm2CwsN0fuDTUibsqywmg-3ZWL3y4HXM&index=1";
+          
+            // $url = $this->youtubeSanitizeUrl($url);
+            // dd($url);
+            $youtubeDL = app(\App\Services\YoutubeDL\Interfaces\YoutubeDLInterface::class);
+            // $url = "https://www.facebook.com/watch/?v=815660161974823";
+            $url = "https://www.facebook.com/100000871364705/videos/536121764255489/";
+            $url = "https://www.facebook.com/watch/?v=815660161974823";
+            // $url = "https://www.facebook.com/Mr.AllTimeHigh/videos/536121764255489";
+            $url = "https://www.facebook.com/Mr.AllTimeHigh/videos/3299247553447591";
+            $url = "https://fb.watch/8o5ymMJw4L";
+            // $url = "https://www.youtube.com//watch?v=tqOGM_Mimjg";
             // $formats = $youtubeDL->getInfoWithFormats($url);
-            // dd($formats);
+            $jsonData = $youtubeDL->getInfoByJson($url);
+            dd($jsonData);
             // $size = new \ChrisUllyott\FileSize("12.53MiB");
             // $size->add("2.07GiB");
             // // dd($size->as("mb"));

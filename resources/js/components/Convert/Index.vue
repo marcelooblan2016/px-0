@@ -20,14 +20,14 @@
         </div>
         <hr/>
         <template v-if="convertRequest == null">
-            <convert-request-initial-form :convertRequest.sync="convertRequest" @historyApiPushState="historyApiPushState"></convert-request-initial-form>
+            <convert-request-initial-form @convertTypeSet="convertTypeSet" :convertRequest.sync="convertRequest" @historyApiPushState="historyApiPushState"></convert-request-initial-form>
         </template>
         <template v-else>
             <template v-if="convertRequestItem == null">
-                <convert-request-options :convertRequest="convertRequest" :convertRequestItem.sync="convertRequestItem" @historyApiPushState="historyApiPushState"></convert-request-options>
+                <convert-request-options @convertTypeSet="convertTypeSet" :convertRequest="convertRequest" :convertRequestItem.sync="convertRequestItem" @historyApiPushState="historyApiPushState"></convert-request-options>
             </template>
             <template v-else>
-                <convert-request-item-results :convertRequestItem="convertRequestItem"></convert-request-item-results>
+                <convert-request-item-results :convertRequest="convertRequest" :convertRequestItem="convertRequestItem"></convert-request-item-results>
             </template>
         </template>
     </div>
@@ -58,6 +58,7 @@ export default {
         return {
             convertRequest: null,
             convertRequestItem: null,
+            currentConvertType: 'Youtube',
         }
     },
 
@@ -74,19 +75,19 @@ export default {
     computed: {
         breadCrumbs () {
             let options = [
-                {'text': 'Youtube', 'value': '/convert', 'active': true}
+                {'text': `${this.currentConvertType}`, 'value': '/convert', 'active': true}
             ];
             
             if (this.convertRequestItem != null) {
                 options = [
-                    {'text': 'Youtube', 'value': '/convert', 'active': false},
+                    {'text': `${this.currentConvertType}`, 'value': '/convert', 'active': false},
                     {'text': 'Download Options', 'value': `/convert/${this.convertRequest.external_id}`, 'active': false},
                     {'text': `${this.convertRequestItem.file_type} &bullet; ${this.convertRequestItem.quality}`, 'value': `/convert/${this.convertRequest.external_id}/${this.convertRequestItem.id}`, 'active': true}
                 ];
             }
             else if (this.convertRequest != null) {
                 options = [
-                    {'text': 'Youtube', 'value': '/convert', 'active': false},
+                    {'text': `${this.currentConvertType}`, 'value': '/convert', 'active': false},
                     {'text': 'Download Options', 'value': `/convert/${this.convertRequest.external_id}`, 'active': true}
                 ];
             }
@@ -96,6 +97,18 @@ export default {
     },
 
     methods: {
+        convertTypeSet (type) {
+            switch(type) {
+                case 'facebook':
+                    this.currentConvertType = 'Facebook';
+                    break;
+                case 'youtube':
+                default:
+                    this.currentConvertType = 'Youtube';
+                    break;
+            }
+        },
+
         historyApiPushState (urlId) {
             window.history.pushState(null, null, `/${urlId}`);
         }

@@ -4,10 +4,15 @@
             <div v-if="showTransition">
                 <div class="row">
                     <div class="col-md-8">
-                        <img class="img-fluid rounded" :src="convertRequestThumbnail" />
+                        <template v-if="convertRequestThumbnail != null">
+                            <img class="img-fluid rounded img-thumbnail" :src="convertRequestThumbnail" />
+                        </template>
+                        <template v-else>
+                            <img class="img-fluid rounded img-thumbnail" :src="defaultThumbnail" />
+                        </template>
 
                         <div class="download-option py-2">
-                            <div class="row">
+                            <div class="row justify-content-center">
                                 <div class="col-md-6">
                                     <h5>Video &bullet; Mp4</h5>
                                     <div class="card mb-1">
@@ -15,20 +20,25 @@
                                             <div class="d-grid gap-2">
                                                 <template v-for="rowVideo in availableDownloadOptionsVideo">
                                                     <a href="#" class="btn btn-success" v-on:click.prevent="convertItem(rowVideo.id)">
-                                                        <strong>{{ rowVideo.quality }}</strong>
-                                                        &bullet;
+                                                        <template v-if="rowVideo.quality != null">
+                                                            <strong>{{ rowVideo.quality }}</strong>
+                                                            &bullet;
+                                                        </template>
                                                         <strong v-show="rowVideo.quality_term != null" class="ucwords">
                                                             {{ rowVideo.quality_term }} quality
                                                         </strong>
 
-                                                        Download ({{ rowVideo.size_plus }})
+                                                        Download 
+                                                        <template v-if="rowVideo.size_plus != null">
+                                                            ({{ rowVideo.size_plus }})
+                                                        </template>
                                                     </a>
                                                 </template>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6" v-if="availableDownloadOptionsAudio.length >= 1">
                                     <h5>Audio &bullet; Mp3</h5>
                                     <div class="card mb-1">
                                         <div class="card-body">
@@ -38,7 +48,10 @@
                                                         <strong class="ucwords">
                                                             Good Quality
                                                         </strong>
-                                                        Download ({{ rowAudio.size_plus }})
+                                                        Download 
+                                                        <template v-if="rowAudio.size_plus != null">
+                                                            ({{ rowAudio.size_plus }})
+                                                        </template>
                                                     </a>
                                                 </template>
                                             </div>
@@ -55,8 +68,10 @@
                         <div class="py-2">
                             <h4 class="text-start">
                                 {{ convertRequestTitle }}
-                                -
-                                <span class="text-muted">{{ convertRequestDuration }}</span>
+                                <template v-if="convertRequestDuration != null">
+                                    -
+                                    <span class="text-muted">{{ convertRequestDuration }}</span>
+                                </template>
                             </h4>
                         </div>
                         <hr/>
@@ -96,11 +111,12 @@ export default {
             isSeeMore: false,
             descriptionMaxLen: 200,
             processing: false,
+            defaultThumbnail: "/images/no-image.png"
         }
     },
 
     mounted () {
-
+        this.$emit('convertTypeSet', this.convertRequest.type);
     },
 
     computed: {
@@ -154,8 +170,7 @@ export default {
                 '1080p'
             ];
             
-         
-            availableDownloadOptions = availableDownloadOptions.filter ( (row) => row.type == 'video' && validQualities.includes(row.quality))
+            let availableDownloadOptionsFiltered = availableDownloadOptions.filter ( (row) => row.type == 'video' && validQualities.includes(row.quality))
                 .map( function (row) {
                     switch(row.quality) {
                         case '480p':
@@ -174,12 +189,20 @@ export default {
 
                     return row;
                 });
-        
             
+            if (availableDownloadOptionsFiltered.length < 1) {
+               availableDownloadOptionsFiltered = availableDownloadOptions.map( function (row) {
+                   row['quality'] = null;
+                   row['quality_term'] = 'good';
+                   return row;
+                })
+                .filter( (row) => ( row.type == 'video') );
+            }
+        
             let duplicates = [];
             let downloadOptions = [];
-            for (let index in availableDownloadOptions) {
-                let row = availableDownloadOptions[index];
+            for (let index in availableDownloadOptionsFiltered) {
+                let row = availableDownloadOptionsFiltered[index];
                 let quality = row['quality'];
                 if (!duplicates.includes(quality)) {
                     duplicates.push(quality);

@@ -27,8 +27,13 @@ extend('url', {
   })
 
 extend('youtube', {
-    message: field => `Url must be valid.`,
-    validate: value => value.match(/youtube.com/) != null ? true : false
+    message: field => `must be a valid youtube url.`,
+    validate: value => value.match(/(youtu\.be|youtube\.com)/) != null ? true : false
+  })
+
+  extend('facebook', {
+    message: field => `must be a valid facebook url.`,
+    validate: value => value.match(/facebook.com/) != null || value.match(/fb.watch/) ? true : false
   })
 
 configure({

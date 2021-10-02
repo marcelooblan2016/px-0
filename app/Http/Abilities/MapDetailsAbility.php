@@ -29,4 +29,30 @@ trait MapDetailsAbility
             'duration_formatted' => $durationFormatted,
         ];
     }
+
+    public function facebookMap(ConvertRequest $convertRequest): array
+    {
+        $firstThumbnail = Arr::get($convertRequest, 'details.thumbnail');
+        $duration = Arr::get($convertRequest, 'details.duration');
+        $durationFormatted = $this->getFormattedDuration($duration);
+        $description = Arr::get($convertRequest, 'details.fulltitle');
+        $description = str_replace("\n", "<br/>", $description);
+        $title = Arr::get($convertRequest, 'details.title');
+        $uploadedDate = Arr::get($convertRequest, 'details.timestamp');
+        if (!empty($uploadedDate)) {
+            $uploadedDate = date("Y-m-d H:i:s");
+        }
+
+        return [
+            'title' => Arr::get($convertRequest, 'details.title'),
+            'description' => $description,
+            'tags' => null,
+            'thumbnail' => $firstThumbnail,
+            'categories' => null,
+            'like_count' => null,
+            'upload_date' => $uploadedDate,
+            'duration' => $duration,
+            'duration_formatted' => $durationFormatted,
+        ];
+    }
 }

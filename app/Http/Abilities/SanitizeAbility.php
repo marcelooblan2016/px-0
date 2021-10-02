@@ -2,6 +2,7 @@
 
 namespace App\Http\Abilities;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 use Exception;
 
 trait SanitizeAbility
@@ -13,15 +14,20 @@ trait SanitizeAbility
     public function youtubeSanitizeUrl($url)
     {
         try {
-            $urlSplitted = explode('?', $url);
+            // https://youtu.be/jRn48HxssPI
+            if (Str::contains($url, ['/youtu.be/']) === true) {
+                return $url;
+            }
+            else {
+                $urlSplitted = explode('?', $url);
         
-            parse_str($urlSplitted[1], $urlParams);
-
-            return vsprintf("%s/watch?v=%s", [
-                $this->youtubeBaseUrl,
-                $urlParams['v']
-            ]);
-
+                parse_str($urlSplitted[1], $urlParams);
+    
+                return vsprintf("%s/watch?v=%s", [
+                    $this->youtubeBaseUrl,
+                    $urlParams['v']
+                ]);
+            }
         } catch (Exception $e) {
             return null;
         }

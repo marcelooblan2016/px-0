@@ -25,13 +25,19 @@ class DownloadController extends Controller
                 ]);
 
                 $fileFullPath = $convertRequestItem->path;
+                if (!\File::exists($fileFullPath)) {
+                    throw new Exception("File not found.", 1);
+                }
+
+                $convertRequestItem->update([
+                    'status' => ModelConvertRequestItem::STATUS_DOWNLOADED
+                ]);
 
                 return response()->download($fileFullPath, $fileName, $headers);
             }
 
             throw new Exception("No data found.", 1);
         } catch (Exception $e) {
-            dd($e->getMessage());
             abort(404);
         }
     }
