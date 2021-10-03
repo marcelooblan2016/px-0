@@ -27,14 +27,19 @@ extend('url', {
   })
 
 extend('youtube', {
-    message: field => `must be a valid youtube url.`,
-    validate: value => value.match(/(youtu\.be|youtube\.com)/) != null ? true : false
-  })
+  message: field => `must be a valid youtube url.`,
+  validate: value => value.match(/(youtu\.be|youtube\.com)/) != null ? true : false
+})
 
-  extend('facebook', {
-    message: field => `must be a valid facebook url.`,
-    validate: value => value.match(/facebook.com/) != null || value.match(/fb.watch/) ? true : false
-  })
+extend('facebook', {
+  message: field => `must be a valid facebook url.`,
+  validate: value => value.match(/(facebook\.com|fb\.watch)/) ? true : false
+})
+
+extend('instagram', {
+  message: field => `must be a valid instagram url.`,
+  validate: value => value.match(/instagram\.com/) != null ? true : false
+})
 
 configure({
   classes: {

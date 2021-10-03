@@ -50,6 +50,7 @@ Route::get('test', function () {
             $url = "https://fb.watch/8o5ymMJw4L";
             // $url = "https://www.youtube.com//watch?v=tqOGM_Mimjg";
             // $formats = $youtubeDL->getInfoWithFormats($url);
+            $url = "https://www.instagram.com/tv/CUkGmrvg0BR/?utm_source=ig_web_copy_link";
             $jsonData = $youtubeDL->getInfoByJson($url);
             dd($jsonData);
             // $size = new \ChrisUllyott\FileSize("12.53MiB");

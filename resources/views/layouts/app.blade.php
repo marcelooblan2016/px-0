@@ -44,6 +44,8 @@
             </main>
             @include('layouts.footer.index')
         </div>
+        
+        @include('includes.constants')
 
         @yield('pre-app-js')
         <script src="{{ mix('js/app.js') }}"></script>

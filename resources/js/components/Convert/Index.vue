@@ -20,7 +20,7 @@
         </div>
         <hr/>
         <template v-if="convertRequest == null">
-            <convert-request-initial-form @convertTypeSet="convertTypeSet" :convertRequest.sync="convertRequest" @historyApiPushState="historyApiPushState"></convert-request-initial-form>
+            <convert-request-initial-form :requestType="requestType" @convertTypeSet="convertTypeSet" :convertRequest.sync="convertRequest" @historyApiPushState="historyApiPushState"></convert-request-initial-form>
         </template>
         <template v-else>
             <template v-if="convertRequestItem == null">
@@ -44,6 +44,10 @@ export default {
     },
 
     props: {
+        requestType: {
+            required: false,
+            default: 'youtube',
+        },
         convertRequestRaw: {
             required: false,
             default: null,
@@ -70,25 +74,46 @@ export default {
         if (this.convertRequestItemRaw != null) {
             this.convertRequestItem = this.convertRequestItemRaw;
         }
+
+        if (this.requestType != null) {
+            switch(this.requestType) {
+                case 'facebook':
+                    this.currentConvertType = 'Facebook';
+                    break;
+                case 'instagram':
+                    this.currentConvertType = 'Instagram';
+                    break;
+                case 'youtube':
+                default:
+                    this.currentConvertType = 'Youtube';
+                    break;
+            }
+        }
+
+        $(window).on('popstate', function(event) {
+            location.reload();
+        });
     },
 
     computed: {
         breadCrumbs () {
+            let baseUrl = CONSTANTS.BASE_URL;
+            let loweredConvertType = (this.currentConvertType).toLowerCase();
             let options = [
-                {'text': `${this.currentConvertType}`, 'value': '/convert', 'active': true}
+                {'text': `${this.currentConvertType}`, 'value': `${baseUrl}convert?r-type=${loweredConvertType}`, 'active': true}
             ];
             
             if (this.convertRequestItem != null) {
                 options = [
-                    {'text': `${this.currentConvertType}`, 'value': '/convert', 'active': false},
-                    {'text': 'Download Options', 'value': `/convert/${this.convertRequest.external_id}`, 'active': false},
-                    {'text': `${this.convertRequestItem.file_type} &bullet; ${this.convertRequestItem.quality}`, 'value': `/convert/${this.convertRequest.external_id}/${this.convertRequestItem.id}`, 'active': true}
+                    {'text': `${this.currentConvertType}`, 'value': `${baseUrl}convert?r-type=${loweredConvertType}`, 'active': false},
+                    {'text': 'Download Options', 'value': `${baseUrl}convert/${this.convertRequest.external_id}`, 'active': false},
+                    {'text': `${this.convertRequestItem.file_type} &bullet; ${this.convertRequestItem.quality}`, 'value': `${baseUrl}convert/${this.convertRequest.external_id}/${this.convertRequestItem.id}`, 'active': true}
                 ];
             }
             else if (this.convertRequest != null) {
                 options = [
-                    {'text': `${this.currentConvertType}`, 'value': '/convert', 'active': false},
-                    {'text': 'Download Options', 'value': `/convert/${this.convertRequest.external_id}`, 'active': true}
+                    {'text': `${this.currentConvertType}`, 'value': `${baseUrl}convert?r-type=${loweredConvertType}`, 'active': false},
+                    {'text': 'Download Options', 'value': `${baseUrl}convert/${this.convertRequest.external_id}`, 'active': true}
                 ];
             }
 
@@ -97,20 +122,41 @@ export default {
     },
 
     methods: {
-        convertTypeSet (type) {
+        convertTypeSet (typeOptions) {
+            let type = typeOptions;
+            let noHistoryApi = false;
+            if (typeof typeOptions == 'object') {
+                type = _.get(typeOptions, 'request_type')
+                noHistoryApi = _.get(typeOptions, 'no_history_api', false)
+                
+                return false;
+            }
+    
+            let urlId = null;
             switch(type) {
+                case 'instagram':
+                    this.currentConvertType = 'Instragram';
+                    urlId = 'convert?r-type=instagram';
+                    break;
                 case 'facebook':
                     this.currentConvertType = 'Facebook';
+                    urlId = 'convert?r-type=facebook';
                     break;
                 case 'youtube':
                 default:
                     this.currentConvertType = 'Youtube';
+                    urlId = 'convert?r-type=youtube';
                     break;
+            }
+            
+            if (urlId != null && noHistoryApi == false) {
+                this.historyApiPushState(urlId);
             }
         },
 
         historyApiPushState (urlId) {
-            window.history.pushState(null, null, `/${urlId}`);
+            let baseUrl = CONSTANTS.BASE_URL;
+            window.history.pushState(null, null, `${baseUrl}${urlId}`);
         }
     }
 }

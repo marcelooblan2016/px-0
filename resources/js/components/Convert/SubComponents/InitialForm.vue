@@ -26,6 +26,24 @@
                                                     <input id="input-url" class="form-control" :class="classes" ref="url" placeholder="https://www.facebook.com/watch/?v=815660161974823" v-model="url" v-on:keyup.enter="validateRequest(validate)" autocomplete="off" />
                                                     <small class="text-danger">{{ errors.length >= 1 ? errors[0] : urlError }}</small>
                                                 </validation-provider>
+                                                <div class="alert alert-light mt-2" role="alert">
+                                                    <strong>Note:</strong> 
+                                                    sure the video is viewable in 
+                                                    <i class="fas fa-globe-americas"></i>
+                                                    public.
+                                                </div>
+                                            </template>
+                                            <template v-else-if="convertType == 'instagram'">
+                                                 <validation-provider :rules="validationRules" v-slot="{ errors, classes }">
+                                                    <input id="input-url" class="form-control" :class="classes" ref="url" placeholder="https://www.instagram.com/tv/CUkGmrvg0BR/" v-model="url" v-on:keyup.enter="validateRequest(validate)" autocomplete="off" />
+                                                    <small class="text-danger">{{ errors.length >= 1 ? errors[0] : urlError }}</small>
+                                                </validation-provider>
+                                                <div class="alert alert-light mt-2" role="alert">
+                                                    <strong>Note:</strong> 
+                                                    sure the video is viewable in 
+                                                    <i class="fas fa-globe-americas"></i>
+                                                    public.
+                                                </div>
                                             </template>
                                         </div>
                                     </div>
@@ -64,6 +82,10 @@ export default {
     },
     mixins: [transitionEffect],
     props: {
+        requestType: {
+            required: false,
+            default: null,
+        },
         convertRequest: {
             required: true,
         }
@@ -75,15 +97,10 @@ export default {
             convertOptions: [
                 {"text": "Youtube", "value": "youtube"},
                 {"text": "Facebook", "value": "facebook"},
-                {"text": "Instagram", "value": "instagram", "disabled": true},
+                {"text": "Instagram", "value": "instagram"},
             ],
-            convertType: 'youtube',
             processing: false,
-            typeOptions: [
-                'foo',
-                'bar',
-                'baz'
-            ]
+            convertType: 'youtube',
         }
     },
 
@@ -91,15 +108,23 @@ export default {
         this.$nextTick( function () {
             $("#input-url").focus();
         });
+
+        if (this.requestType != null) {
+            this.convertType = this.requestType;
+        }
     },
 
     computed: {
+
         validationRules () {
             if (this.convertType == 'youtube') {
                 return 'required|url|youtube';
             }
             else if (this.convertType == 'facebook') {
                 return 'required|url|facebook';
+            }
+            else if (this.convertType == 'instagram') {
+                return 'required|url|instagram';
             }
 
             return 'required';

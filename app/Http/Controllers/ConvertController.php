@@ -52,12 +52,38 @@ class ConvertController extends Controller
         $convertType = $request->get('convert_type');
         try {
             switch($convertType) {
+                case ModelConvertRequest::TYPE_INSTAGRAM:
+                    $url = ($request->get('url'));
+                    
+                    if (empty($url)) throw new Exception("url not found: ". $request->get('url'), 1);
+
+                    // check if url already requested
+                    $convertRequest = ModelConvertRequest::where('url', $url)->first();
+
+                    if (empty($convertRequest)) {
+                        $jsonData = $youtubeDL->getInfoByJson($url, $convertType);
+
+                        if (empty($jsonData)) throw new Exception("Url not found.");
+
+                        $convertRequest = ModelConvertRequest::create([
+                            'url' => $url,
+                            'type' => $convertType,
+                            'method' => ModelConvertRequest::METHOD_CONVERSION,
+                            'details' => $jsonData
+                        ]);
+                    }
+
+                    $methodName = $convertType."Map";
+                    $convertRequest['mapped_details'] = method_exists($this, $methodName) ? $this->{$methodName}($convertRequest) : null;
+
+                    return response()->json($convertRequest, 200);
+                break;
                 case ModelConvertRequest::TYPE_YOUTUBE:
                     $url = $this->youtubeSanitizeUrl($request->get('url'));
                     
                     if (empty($url)) throw new Exception("url not found: ". $request->get('url'), 1);
                     
-                    // check if url already requested -- check if not older than 30 days
+                    // check if url already requested
                     $convertRequest = ModelConvertRequest::where('url', $url)->first();
 
                     if (empty($convertRequest)) {
@@ -82,14 +108,14 @@ class ConvertController extends Controller
                     $url = ($request->get('url'));
                     
                     if (empty($url)) throw new Exception("url not found: ". $request->get('url'), 1);
-                    // check if url already requested -- check if not older than 30 days
+                    // check if url already requested
                     $convertRequest = ModelConvertRequest::where('url', $url)->first();
 
                     if (empty($convertRequest)) {
                         $jsonData = $youtubeDL->getInfoByJson($url, $convertType);
 
                         if (empty($jsonData)) throw new Exception("Url not found.");
-                        
+
                         $convertRequest = ModelConvertRequest::create([
                             'url' => $url,
                             'type' => $convertType,
@@ -157,8 +183,7 @@ class ConvertController extends Controller
 
             $isDispatchedJob = false;
             $fileType = $foundDownload['file_type'];
-            $quality = $foundDownload['quality'];
-
+            $quality = $foundDownload['quality'] ?? 'best';
             if (empty($convertRequestItem)) {
                 $isDispatchedJob = true;
                 switch($fileType) {

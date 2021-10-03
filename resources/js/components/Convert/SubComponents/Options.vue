@@ -4,6 +4,7 @@
             <div v-if="showTransition">
                 <div class="row">
                     <div class="col-md-8">
+                        <img src="https://instagram.fceb2-1.fna.fbcdn.net/v/t51.2885-15/e35/244129387_616372966408237_2087322593076326709_n.jpg?_nc_ht=instagram.fceb2-1.fna.fbcdn.net&_nc_cat=101&_nc_ohc=Cm6Zm-W4ViYAX-jCi__&edm=ADECaisBAAAA&ccb=7-4&oh=0cb7ad39d81bfb4b95e26a06ea2f82ad&oe=615BEEA6&_nc_sid=ca78b6" />
                         <template v-if="convertRequestThumbnail != null">
                             <img class="img-fluid rounded img-thumbnail" :src="convertRequestThumbnail" />
                         </template>
@@ -25,6 +26,7 @@
                                                             &bullet;
                                                         </template>
                                                         <strong v-show="rowVideo.quality_term != null" class="ucwords">
+                                                            <small>{{ rowVideo.resolution }}</small>
                                                             {{ rowVideo.quality_term }} quality
                                                         </strong>
 
@@ -116,7 +118,7 @@ export default {
     },
 
     mounted () {
-        this.$emit('convertTypeSet', this.convertRequest.type);
+        this.$emit('convertTypeSet', {'request_type': this.convertRequest.type, 'no_history_api': true});
     },
 
     computed: {
@@ -165,7 +167,10 @@ export default {
             if (availableDownloadOptions == null) return false;
 
             let validQualities = [
+                '360p',
+                '370p',
                 '480p',
+                '540p',
                 '720p',
                 '1080p'
             ];
@@ -173,7 +178,10 @@ export default {
             let availableDownloadOptionsFiltered = availableDownloadOptions.filter ( (row) => row.type == 'video' && validQualities.includes(row.quality))
                 .map( function (row) {
                     switch(row.quality) {
+                        case '360p':
+                        case '370p':
                         case '480p':
+                        case '540p':
                             row['quality_term'] = 'low';
                             break;
                         case '720p':
@@ -193,7 +201,7 @@ export default {
             if (availableDownloadOptionsFiltered.length < 1) {
                availableDownloadOptionsFiltered = availableDownloadOptions.map( function (row) {
                    row['quality'] = null;
-                   row['quality_term'] = 'good';
+                   row['quality_term'] = 'best';
                    return row;
                 })
                 .filter( (row) => ( row.type == 'video') );

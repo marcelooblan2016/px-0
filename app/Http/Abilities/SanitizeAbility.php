@@ -23,7 +23,7 @@ trait SanitizeAbility
         
                 parse_str($urlSplitted[1], $urlParams);
     
-                return vsprintf("%s/watch?v=%s", [
+                return vsprintf("%swatch?v=%s", [
                     $this->youtubeBaseUrl,
                     $urlParams['v']
                 ]);
